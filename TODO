@@ -1,0 +1,2 @@
+1. Add a garbage collector to deallocate all nodes
+2. thinks about multiprocessing / multithreading
