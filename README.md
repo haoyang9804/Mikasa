@@ -6,3 +6,5 @@ Currently, the project is in the development phase, and my primary focus is on c
 
 To validate Mikasa's accuracy and functionality, I am utilizing it to address online coding problems.
 You can find my passed codes under `test` folder and learn how to use Mikasa from them.
+
+Since I use some C++17 features, please submit code under this standard when you use Mikasa.
