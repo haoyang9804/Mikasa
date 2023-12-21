@@ -60,23 +60,16 @@ int main() {
         cnt[lowp].cnt++;
         cnt[lowp].sum += lowp;
       }
-      // cout << "===cnt===\n";
-      // for (int i = 0; i < n+1; i++) {
-      //   cout << "cnt[" << i << "] = " << cnt[i].cnt << " " << cnt[i].sum <<
-      //   endl;
-      // }
       st = new SegmentTree<int, S>(cnt, [](S x, S y) { return x + y; });
       st->set_update_function([](S cur, S val, int l, int r) { return val; });
       st->set_lazy_update([](S lazy, S another_lazy) { return another_lazy; });
       int res = st->query(0, n).sum;
-      // cout << "original: " << res << endl;
       for (int i = 0; i < n - 1; i++) {
         S tmp = st->query(arr[i], n);
         if (arr[i] + 1 <= n - 1)
           st->update(arr[i] + 1, n - 1, S(0, 0));
         st->update(arr[i], S(tmp.cnt, tmp.cnt * arr[i]));
         res = max(res, st->query(0, n).sum);
-        // cout << "i = " << i << " res = " << res << endl;
       } cout
       << res << endl;
       delete st;)
