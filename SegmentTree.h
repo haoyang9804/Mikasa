@@ -26,10 +26,10 @@ class STNode {
 public:
   STNode(NT val, T l, T r) : val(val), l(l), r(r) {}
   STNode(T l, T r) : l(l), r(r) {}
+  ~STNode() { left = right = nullptr; }
 
   // getters and setters
   NT get_val() { return val; }
-  STNode *get_parent() { return parent; }
   void set_val(NT val) { this->val = val; }
   void add_left(STNode *left) { this->left = left; }
   void add_right(STNode *right) { this->right = right; }
@@ -56,8 +56,7 @@ public:
 
 private:
   NT val;
-  STNode *parent;
-  STNode *left, *right;
+  STNode *left = nullptr, *right = nullptr;
   bool lazy = false;
   NT lazy_val;
 };
@@ -82,14 +81,15 @@ public:
   }
 
   ~SegmentTree() {
+    this->vec.clear();
     std::queue<STNode<T, NT> *> node_queue;
     node_queue.push(root_p);
     while (!node_queue.empty()) {
       auto *top = node_queue.front();
       auto *left = top->get_left();
       auto *right = top->get_right();
-      delete top;
       node_queue.pop();
+      delete top;
       if (left)
         node_queue.push(left);
       if (right)
@@ -112,8 +112,8 @@ public:
   /**
    * @brief update the segment [ul:ur]
    *
-   * @param ul: the left of the interval
-   * @param ur: the right of the interval
+   * @param ul: the lower bound of the interval
+   * @param ur: the upper bound of the interval
    * @param u_val: the value by which to update the value maintained by the node
    */
   void update(const T &ul, const T &ur, const NT &u_val) {
@@ -128,8 +128,7 @@ public:
   /**
    * @brief update a single element [u]
    *
-   * @param ul: the left of the interval
-   * @param ur: the right of the interval
+   * @param u: the updated element
    * @param u_val: the value by which to update the value maintained by the node
    */
   void update(const T &u, const NT &u_val) {
@@ -138,7 +137,7 @@ public:
     ASSERT(updateF_ele || updateF_seg,
            "You should define your update function.");
     STNode<T, NT> *cur_node_p = this->root_p;
-    update(u, cur_node_p, u_val);
+    update(u, u, cur_node_p, u_val);
   }
 
   /**
@@ -224,18 +223,18 @@ private:
     return cur_node_p;
   }
 
-  void update(const T &u, STNode<T, NT> *cur_node_p, const NT &u_val) {
-    if (cur_node_p->is_leaf()) {
-      cur_node_p->set_val(updateF_ele(cur_node_p->get_val(), u_val));
-      return;
-    }
-    T mid = cut_it_half(cur_node_p->l, cur_node_p->r);
-    if (u <= mid)
-      update(u, cur_node_p->get_left(), u_val);
-    else
-      update(u, cur_node_p->get_right(), u_val);
-    pushup(cur_node_p);
-  }
+  // void update(const T &u, STNode<T, NT> *cur_node_p, const NT &u_val) {
+  //   if (cur_node_p->is_leaf()) {
+  //     cur_node_p->set_val(updateF_ele(cur_node_p->get_val(), u_val));
+  //     return;
+  //   }
+  //   T mid = cut_it_half(cur_node_p->l, cur_node_p->r);
+  //   if (u <= mid)
+  //     update(u, cur_node_p->get_left(), u_val);
+  //   else
+  //     update(u, cur_node_p->get_right(), u_val);
+  //   pushup(cur_node_p);
+  // }
 
   void spread_laziness(STNode<T, NT> *cur_node_p) {
     if (cur_node_p->is_lazy() && !cur_node_p->is_leaf()) {
@@ -253,10 +252,9 @@ private:
 
   void update(const T &ul, const T &ur, STNode<T, NT> *cur_node_p,
               const NT &u_val) {
-    ASSERT(ul <= ur, "The lower bound is larger than the upper bound.");
-
-    // update a segment requires lazy mark to reduce time cost.
-    // However,
+    ASSERT(ul <= ur, "The lower bound(" + std::to_string(ul) +
+                         ") is larger than the upper bound(" +
+                         std::to_string(ur) + ").");
 
     if (ul <= cur_node_p->l && ur >= cur_node_p->r) {
       cur_node_p->set_val(updateF_seg(cur_node_p->get_val(), u_val,
@@ -287,7 +285,7 @@ private:
     }
     if (qr > mid) {
       if (first_branch)
-        result += query(ql, qr, cur_node_p->get_right());
+        result = result + query(ql, qr, cur_node_p->get_right());
       else
         result = query(ql, qr, cur_node_p->get_right());
     }
